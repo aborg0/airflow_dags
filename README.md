@@ -24,7 +24,7 @@ Using Apache Airflow in order to read data from Cassandra table to an Avro file 
 
 > pip install hdfs
 
-> pip install fastavro
+~~pip install fastavro~~
 
 > airflow db init
 
