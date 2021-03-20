@@ -8,8 +8,8 @@ from airflow.providers.apache.cassandra.sensors.table import CassandraTableSenso
 from cassandra.cluster import Cluster, ResultSet, Session
 from cassandra.auth import PlainTextAuthProvider
 
-from hdfs import Client, InsecureClient
-from hdfs.ext.avro import AvroWriter
+# from hdfs import Client, InsecureClient
+# from hdfs.ext.avro import AvroWriter
 
 args = {
     'owner': 'Airflow',
@@ -31,21 +31,21 @@ def cassandra_to_avro():
         rows: ResultSet = session.execute("SELECT title, description FROM videos")
         return list(map(lambda row: (row[0], row[1]), rows))
     
-    @task
-    def write_to_hdfs(rows: List[Tuple[str, str]]):
-        conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
-        client = InsecureClient(conn.get_uri, user=conn.login)
+    # @task
+    # def write_to_hdfs(rows: List[Tuple[str, str]]):
+    #     conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
+    #     client = InsecureClient(conn.get_uri, user=conn.login)
             
-        with AvroWriter(client, 'videos.avro', schema={
-            'type':'record',
-            'name':'video',
-            'fields': [
-                {'type': 'string', 'name': 'title'},
-                {'type': 'string', 'name': 'description'},
-            ]
-        }) as writer:
-            for row in rows:
-                writer.write(row)
+    #     with AvroWriter(client, 'videos.avro', schema={
+    #         'type':'record',
+    #         'name':'video',
+    #         'fields': [
+    #             {'type': 'string', 'name': 'title'},
+    #             {'type': 'string', 'name': 'description'},
+    #         ]
+    #     }) as writer:
+    #         for row in rows:
+    #             writer.write(row)
         
     ctx = get_current_context()
     table_sensor = CassandraTableSensor(
@@ -55,7 +55,7 @@ def cassandra_to_avro():
     )
 
     load = load_from_cassandra()
-    write_to_hdfs(load)
+    # write_to_hdfs(load)
     table_sensor >> load
 
 cassandra_to_avro_dag = cassandra_to_avro()
