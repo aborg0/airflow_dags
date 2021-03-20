@@ -24,7 +24,7 @@ args = {
 def cassandra_to_avro():
     @task
     def load_from_cassandra() -> List[Tuple[str, str]]:
-        conn: Connection = Connection.get_connection_from_secrets(get_current_context()['cassandra_connection'])
+        conn: Connection = Connection.get_connection_from_secrets('local_cassandra')
         auth_provider = PlainTextAuthProvider(username=conn.login, password=conn.password)
         cluster: Cluster = Cluster([conn.host], conn.port, auth_provider=auth_provider)
         session: Session = cluster.connect(conn.schema)
