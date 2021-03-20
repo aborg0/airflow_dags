@@ -49,7 +49,7 @@ def cassandra_to_avro():
             
         sch = avro.schema.make_avsc_object({
             'type':'record',
-            'name':'video',
+            'name':'Video',
             'fields': [
                 {'type': 'string', 'name': 'title'},
                 {'type': 'string', 'name': 'description'},
