@@ -47,10 +47,10 @@ def cassandra_to_avro():
     #         for row in rows:
     #             writer.write(row)
         
-    ctx = get_current_context()
+    # ctx = get_current_context()
     table_sensor = CassandraTableSensor(
         task_id="cassandra_table_sensor",
-        cassandra_conn_id=ctx['cassandra_connection'],
+        cassandra_conn_id='local_cassandra',
         table="killrvideo.videos",
     )
 
