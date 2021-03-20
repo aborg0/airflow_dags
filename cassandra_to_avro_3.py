@@ -38,7 +38,7 @@ def cassandra_to_avro():
     
     @task
     def write_to_hdfs(rows: List[Tuple[str, str]]):
-        conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
+        conn: Connection = Connection.get_connection_from_secrets('local_hdfs')
         client = InsecureClient(conn.get_uri, user=conn.login)
             
         sch = avro.schema.make_avsc_object({
