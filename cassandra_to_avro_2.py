@@ -8,6 +8,9 @@ from airflow.providers.apache.cassandra.sensors.table import CassandraTableSenso
 from cassandra.cluster import Cluster, ResultSet, Session
 from cassandra.auth import PlainTextAuthProvider
 
+import avro.schema
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 # from hdfs import Client, InsecureClient
 # from hdfs.ext.avro import AvroWriter
 
@@ -29,23 +32,27 @@ def cassandra_to_avro():
         cluster: Cluster = Cluster([conn.host], conn.port, auth_provider=auth_provider)
         session: Session = cluster.connect(conn.schema)
         rows: ResultSet = session.execute("SELECT title, description FROM videos")
-        return list(map(lambda row: (row[0], row[1]), rows))
+        result = list(map(lambda row: (row[0], row[1]), rows))
+        print(result)
+        return result
     
-    # @task
-    # def write_to_hdfs(rows: List[Tuple[str, str]]):
-    #     conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
-    #     client = InsecureClient(conn.get_uri, user=conn.login)
+    @task
+    def write_to_hdfs(rows: List[Tuple[str, str]]):
+        # conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
+        # client = InsecureClient(conn.get_uri, user=conn.login)
             
-    #     with AvroWriter(client, 'videos.avro', schema={
-    #         'type':'record',
-    #         'name':'video',
-    #         'fields': [
-    #             {'type': 'string', 'name': 'title'},
-    #             {'type': 'string', 'name': 'description'},
-    #         ]
-    #     }) as writer:
-    #         for row in rows:
-    #             writer.write(row)
+        sch = avro.schema.make_avsc_object({
+            'type':'record',
+            'name':'video',
+            'fields': [
+                {'type': 'string', 'name': 'title'},
+                {'type': 'string', 'name': 'description'},
+            ]
+        })
+        writer = DataFileWriter(open('videos.avro', "wb"), DatumWriter(), sch)
+        for row in rows:
+            writer.append(map(lambda r: {'title': r[0], 'description': r[1]}, row))
+        writer.close()
         
     # ctx = get_current_context()
     table_sensor = CassandraTableSensor(
@@ -55,7 +62,7 @@ def cassandra_to_avro():
     )
 
     load = load_from_cassandra()
-    # write_to_hdfs(load)
+    write_to_hdfs(load)
     table_sensor >> load
 
 cassandra_to_avro_dag = cassandra_to_avro()
