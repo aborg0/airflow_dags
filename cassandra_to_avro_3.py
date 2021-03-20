@@ -14,6 +14,8 @@ from avro.io import DatumWriter
 from hdfs import Client, InsecureClient
 # from hdfs.ext.avro import AvroWriter
 
+import re
+
 args = {
     'owner': 'Airflow',
     'cassandra_connection': 'local_cassandra',
@@ -39,10 +41,14 @@ def cassandra_to_avro():
     @task
     def write_to_hdfs(rows: List[Tuple[str, str]]):
         conn: Connection = Connection.get_connection_from_secrets('local_hdfs')
+        uri = conn.get_uri()
+        pat = re.compile("http://(\w+(:\w+)?)?@")
         print(conn.get_uri())
+
+        uri = pat.sub("http://", uri)
+        print(uri)
         print(conn.login)
-        client = InsecureClient(conn.get_uri(), user=conn.login)
-            
+        client = InsecureClient(uri, user=conn.login)
         sch = avro.schema.make_avsc_object({
             'type':'record',
             'name':'Video',
