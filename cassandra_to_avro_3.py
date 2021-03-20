@@ -11,7 +11,7 @@ from cassandra.auth import PlainTextAuthProvider
 import avro.schema
 from avro.datafile import DataFileWriter
 from avro.io import DatumWriter
-# from hdfs import Client, InsecureClient
+from hdfs import Client, InsecureClient
 # from hdfs.ext.avro import AvroWriter
 
 args = {
@@ -38,8 +38,8 @@ def cassandra_to_avro():
     
     @task
     def write_to_hdfs(rows: List[Tuple[str, str]]):
-        # conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
-        # client = InsecureClient(conn.get_uri, user=conn.login)
+        conn: Connection = Connection.get_connection_from_secrets(get_current_context()['hdfs_connection'])
+        client = InsecureClient(conn.get_uri, user=conn.login)
             
         sch = avro.schema.make_avsc_object({
             'type':'record',
@@ -49,11 +49,13 @@ def cassandra_to_avro():
                 {'type': ["null", {'type': 'string', 'avro.java.string': 'String'}], 'name': 'description'},
             ]
         })
-        writer = DataFileWriter(open('videos.avro', "wb"), DatumWriter(), sch)
+        local_file_name = 'videos.avro'
+        writer = DataFileWriter(open(local_file_name, "wb"), DatumWriter(), sch)
         for row in rows:
             print(row)
             writer.append({"title":row[0], "description":row[1]})
         writer.close()
+        client.upload('/tmp/videos.avro', local_file_name)
         
     # ctx = get_current_context()
     table_sensor = CassandraTableSensor(
