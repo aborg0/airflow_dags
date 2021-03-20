@@ -20,12 +20,6 @@ args = {
     'hdfs_connection': 'local_hdfs',
 }
 
-class Video:
-    def __init__(self, title: str, description: str) -> None:
-        self.title = title
-        self.description = description
-
-
 @dag(default_args=args,
     schedule_interval=None,
     start_date=days_ago(2),
@@ -57,7 +51,8 @@ def cassandra_to_avro():
         })
         writer = DataFileWriter(open('videos.avro', "wb"), DatumWriter(), sch)
         for row in rows:
-            writer.append(map(lambda r: Video(title=r[0], description=r[1]), row))
+            print(row)
+            writer.append({"title":row[0], "description":row[1]})
         writer.close()
         
     # ctx = get_current_context()
