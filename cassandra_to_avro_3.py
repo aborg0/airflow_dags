@@ -45,8 +45,8 @@ def cassandra_to_avro():
             'type':'record',
             'name':'Video',
             'fields': [
-                {'type': 'string', 'name': 'title'},
-                {'type': 'string', 'name': 'description'},
+                {'type': {'type': 'string', 'avro.java.string': 'String'}, 'name': 'title'},
+                {'type': ["null", {'type': 'string', 'avro.java.string': 'String'}], 'name': 'description'},
             ]
         })
         writer = DataFileWriter(open('videos.avro', "wb"), DatumWriter(), sch)
