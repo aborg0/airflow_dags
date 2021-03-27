@@ -70,7 +70,7 @@ def cassandra_to_avro():
         task_id="cassandra_to_avro_spark",
         conn_id="spark_local",
         name="cassandra_to_avro_spark",
-        application="cassandra_to_avro_spark.py",
+        application="dags/cassandra_to_avro_spark.py",
         packages="org.apache.spark:spark-avro_2.12:3.1.1,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0",
     )
         
