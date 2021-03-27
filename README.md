@@ -16,9 +16,11 @@ Using Apache Airflow in order to read data from Cassandra table to an Avro file 
 
 > pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
 
-> pip install apache-airflow-providers-apache-cassandra
+> pip install apache-airflow-providers-apache-cassandra # 1.0.1
 
-> pip install apache-airflow-providers-apache-hdfs
+> pip install apache-airflow-providers-apache-hdfs # 1.0.1
+
+> pip install apache-airflow-providers-apache-spark # 1.0.2
 
 > pip install avro
 

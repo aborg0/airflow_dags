@@ -5,6 +5,7 @@ from airflow.utils.dates import days_ago
 from airflow.models import DAG
 from airflow.models.connection import Connection
 from airflow.providers.apache.cassandra.sensors.table import CassandraTableSensor
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from cassandra.cluster import Cluster, ResultSet, Session
 from cassandra.auth import PlainTextAuthProvider
 
@@ -27,7 +28,7 @@ args = {
     start_date=days_ago(2),
     tags=['cassandra', 'hdfs'],)
 def cassandra_to_avro():
-    @task
+    # @task
     def load_from_cassandra() -> List[Tuple[str, str]]:
         conn: Connection = Connection.get_connection_from_secrets('local_cassandra')
         auth_provider = PlainTextAuthProvider(username=conn.login, password=conn.password)
@@ -38,7 +39,7 @@ def cassandra_to_avro():
         print(result)
         return result
     
-    @task
+    # @task
     def write_to_hdfs(rows: List[Tuple[str, str]]):
         conn: Connection = Connection.get_connection_from_secrets('local_hdfs')
         uri = conn.get_uri()
@@ -64,6 +65,11 @@ def cassandra_to_avro():
             writer.append({"title":row[0], "description":row[1]})
         writer.close()
         client.upload('/tmp/videos.avro', local_file_name)
+
+    load_and_save_using_spark = SparkSubmitOperator(
+        application="cassandra_to_avro_spark.py",
+        packages="org.apache.spark:spark-avro_2.12:3.1.1,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0",
+    )
         
     # ctx = get_current_context()
     table_sensor = CassandraTableSensor(
@@ -72,8 +78,8 @@ def cassandra_to_avro():
         table="killrvideo.videos",
     )
 
-    load = load_from_cassandra()
-    write_to_hdfs(load)
-    table_sensor >> load
+    # load = load_from_cassandra()
+    # write_to_hdfs(load)
+    table_sensor >> load_and_save_using_spark
 
 cassandra_to_avro_dag = cassandra_to_avro()
