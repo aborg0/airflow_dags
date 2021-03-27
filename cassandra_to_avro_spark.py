@@ -2,8 +2,10 @@ import pyspark
 import pyspark.sql
 import avro
 
-sc = pyspark.SparkContext("local[*]")
-spark = pyspark.sql.SparkSession(sc)
+# sc = pyspark.SparkContext("local[*]")
+# spark = pyspark.sql.SparkSession(sc)
+# https://stackoverflow.com/a/57908610
+spark = pyspark.sql.SparkSession.builder.master("local").config("spark.cassandra.auth.username", "cassandra")
 
 # https://stackoverflow.com/a/46675457
 hosts = {"spark.cassandra.connection.host": 'host.docker.internal'}
